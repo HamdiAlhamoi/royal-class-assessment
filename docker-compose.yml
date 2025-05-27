@@ -1,0 +1,94 @@
+version: '3.9'
+
+services:
+  a-svc:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        - APP_NAME=a-svc
+    command: node dist/apps/a-svc/main.js
+    ports:
+      - 3001:3001
+    environment:
+      - NODE_ENV=local
+      - A_SVC_REDIS_HOST=redis
+      - A_SVC_REDIS_PORT=6379
+      - B_SVC_REDIS_HOST=redis
+      - B_SVC_REDIS_PORT=6379
+    volumes:
+      - ./libs:/usr/src/app/libs
+      - ./package.json:/usr/src/app/package.json
+      - ./tsconfig.json:/usr/src/app/tsconfig.json
+      - ./apps/a-svc:/usr/src/app/apps/a-svc
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+  b-svc:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        - APP_NAME=b-svc
+    command: node dist/apps/b-svc/main.js
+    ports:
+      - 3002:3002
+    environment:
+      - NODE_ENV=local
+      - B_SVC_REDIS_HOST=redis
+      - B_SVC_REDIS_PORT=6379
+    volumes:
+      - ./libs:/usr/src/app/libs
+      - ./package.json:/usr/src/app/package.json
+      - ./tsconfig.json:/usr/src/app/tsconfig.json
+      - ./apps/b-svc:/usr/src/app/apps/b-svc
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        - APP_NAME=api-gateway
+    command: node dist/apps/api-gateway/main.js
+    ports:
+      - 8000:8000
+    environment:
+      - NODE_ENV=local
+      - SERVER_HTTP_PORT=8000
+      - SERVER_HTTP_HOST=http://localhost
+      - SWAGGER_API=/docs
+      - SWAGGER_ALLOW=yes
+      - SWAGGER_USER_NAME=royal
+      - SWAGGER_PASSWORD=clas$
+      - A_SVC_REDIS_HOST=redis
+      - A_SVC_REDIS_PORT=6379
+      - B_SVC_REDIS_HOST=redis
+      - B_SVC_REDIS_PORT=6379
+    volumes:
+      - ./libs:/usr/src/app/libs
+      - ./package.json:/usr/src/app/package.json
+      - ./tsconfig.json:/usr/src/app/tsconfig.json
+      - ./apps/api-gateway:/usr/src/app/apps/api-gateway
+    depends_on:
+      - a-svc
+      - b-svc
+      - redis
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - 6380:6379
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

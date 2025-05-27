@@ -1,0 +1,41 @@
+dockerignore# Node modules
+node_modules
+**/node_modules
+
+# Logs
+*.log
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist
+build
+tmp
+.cache
+coverage
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# OS / editor files
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+
+# Test files
+**/*.spec.ts
+**/__tests__/
+
+# Env files (optional – include only if you manage them via secrets)
+.env
+*.env
